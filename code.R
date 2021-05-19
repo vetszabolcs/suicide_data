@@ -8,8 +8,7 @@ library(grid)
 library(gridExtra)
 
 
-setwd("D:/Users/witen/Desktop/Suli/R/beadandó/")
-df_link <- "https://github.com/vetszabolcs/suicide_graps/raw/main/master.csv"
+df_link <- "https://github.com/vetszabolcs/suicide_data/raw/main/master.csv"
 df <- read.csv(df_link, encoding = "UTF-8")
 colnames(df)[1] <- "country"
 
