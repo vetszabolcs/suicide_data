@@ -180,8 +180,9 @@ for (p in ls()[grep("Plotly",ls())]){
              paste(p, ".html", sep=""))
 }
 
-# As time passes it seems like the rate of suicide decreases. 
-# Although this rate in Lithuania is still extremely high comared
+# As time passes it seems like the rate of suicide slightly decreases
+# although in some countries it increased in the past few years. 
+# Suicide rate in Lithuania is still extremely high comared
 # to the rest of european countries and Hungary is still in the top
 # 6 coutries that has the highest suicide rate. 
 # Committing suicide is more frequent in the older generations and 
