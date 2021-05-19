@@ -70,16 +70,14 @@ plot1 <- gg_plot
 #slicing to males only
 
 #personalised aggregate function
-aggreGate <- function(data_f, by="country"){
+aggreGate <- function(data_f, by="year"){
   new_df <- data_f
   colnames(new_df)[1] <- "country"
-  for (c in unique(new_df[,by])){
-    for (y in unique(new_df$year)){
-      new_df$average[new_df[,by] == c & new_df$year == y] <- 
-        tapply(new_df$suicides_no[new_df[,by]==c & new_df$year == y],
-               list(new_df[,by][new_df[,by]==c & new_df$year == y]),
-               function(x){
-                 sum(x) / sum(new_df$population[new_df[,by] == c & new_df$year == y]) * 100000})
+  for (c in unique(new_df$country)){
+    for (y in unique(new_df[,by])){
+      new_df$average[new_df$country == c & new_df[,by] == y] <- 
+        sum(new_df$suicides_no[new_df$country == c & new_df[,by]==y]) /
+        sum(new_df$population[new_df$country == c & new_df[,by]==y]) *100000
     }
   }
   return(new_df)
