@@ -9,19 +9,22 @@ library(gridExtra)
 
 
 df_link <- "https://github.com/vetszabolcs/suicide_data/raw/main/master.csv"
-df <- read.csv(df_link, encoding = "UTF-8")
-colnames(df)[1] <- "country"
+orig <- read.csv(df_link, encoding = "UTF-8")
+colnames(orig)[1] <- "country"
+orig$generation <-  factor(orig$generation, levels = c("G.I. Generation", "Silent", "Boomers",
+                                                       "Generation X", "Millenials", "Generation Z"))
 
-#aggregate by country
-for (c in unique(df$country)){
-  for (y in unique(df$year)){
-    df$average[df$country == c & df$year == y] <- 
-      tapply(df$suicides_no[df$country==c & df$year == y],
-             list(df$country[df$country==c & df$year == y]),
-             function(x){
-               sum(x) / sum(df$population[df$country == c & df$year == y]) * 100000})
-  }
-}
+
+#personalised aggregate function
+aggreGate <- function(data_f, by="country", by2="year"){
+  new_df <- data_f
+  for (x in unique(new_df[,by])){
+    for (y in unique(new_df[,by2])){
+      rows <- which(new_df[,by]== x & new_df[,by2]== y)
+      new_df[rows, "average"] <- sum(new_df[rows,"suicides_no"]) / sum(new_df[rows,"population"]) * 100000
+    }}
+  return(new_df)}
+
 
 #handling possible font error
 if (!"Arial" %in% extrafont::fonts()){
@@ -41,10 +44,10 @@ annual_plot_lines <- function(Data, Lines=country, line_label="Country", gg_name
   #adding lines and legend
   gg_plot <<-  (annual_gg + geom_line() + labs(colour=line_label)+
                   xlab("Year") + ylab("Suicides per 100k people")+
-                  theme(text = element_text(family = "Arial"),
-                        axis.title = element_text(family = "Arial", face="bold", size=12),
-                        legend.title = element_text(family = "Arial", face="bold", size=12)))+
-    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5, face="bold"))
+                  theme(text = element_text(family = "Arial", size = 14),
+                        axis.title = element_text(face="bold", size=16),
+                        legend.title = element_text(face="bold", size=16)))+
+    ggtitle(title) + theme(plot.title = element_text(hjust = 0.5, face="bold", size=20))
   print(gg_plot)
   #removing legend
   no_legend <- gg_plot + theme(legend.title = element_blank())
@@ -59,124 +62,112 @@ annual_plot_lines <- function(Data, Lines=country, line_label="Country", gg_name
   return(widget)
 }
 
-
+#aggregate by country and year
+df <- aggreGate(orig)
 Plotly <- annual_plot_lines(df, title = "General population")
-plot1 <- gg_plot
+ggplot1 <- gg_plot
 #save widget to working directory
 #saveWidget(as_widget(annual_plotly), "Annual_sucidie.html")
 
 #-----------------------------------------------------------------------------------
+#male population only
 
-#slicing to males only
-
-#personalised aggregate function
-aggreGate <- function(data_f, by="year"){
-  new_df <- data_f
-  colnames(new_df)[1] <- "country"
-  for (c in unique(new_df$country)){
-    for (y in unique(new_df[,by])){
-      new_df$average[new_df$country == c & new_df[,by] == y] <- 
-        sum(new_df$suicides_no[new_df$country == c & new_df[,by]==y]) /
-        sum(new_df$population[new_df$country == c & new_df[,by]==y]) *100000
-    }
-  }
-  return(new_df)
-}
-
-#getting data
-df2 <- read.csv(df_link, encoding = "UTF-8")
-#slicing data
-df2 <- df2[df2$sex=="male",]#
+#data
+df2 <- orig[orig$sex=="male",]
 #aggreGate
 df2 <- aggreGate(df2)
+
+
 #creating plots
 Plotly2 <- annual_plot_lines(df2, title = "Male population")
-plot2 <- gg_plot
+ggplot2 <- gg_plot
 #-------------------------------------------------------------------------------
-#previous method with females only
+#females only
 
-df3 <- read.csv(df_link, encoding = "UTF-8")
-
-df3 <- df3[df3$sex=="female",]
-
+df3 <- orig[orig$sex=="female",]
 df3 <- aggreGate(df3)
-
 Plotly3 <- annual_plot_lines(df3, title="Female population")
-plot3 <- gg_plot
+ggplot3 <- gg_plot
 #-------------------------------------------------------------------------------
 #aggregate by generation
 
-df4 <- read.csv(df_link, encoding = "UTF-8")
-
-df4 <- aggreGate(df4, "generation")
+df4 <- orig
+df4 <- aggreGate(df4, "generation", "year")
 
 Plotly4 <- annual_plot_lines(df4, Lines = generation, line_label = "Generation",
                              title = "Across Generations")
-plot4 <- gg_plot
+ggplot4 <- gg_plot
 #-------------------------------------------------------------------------------
 #"top" suicide countries on barplots
 top_suicide_countries <- attributes(head(sort(tapply(df$average, list(df$country), mean),
-                     decreasing = T),6))$dimnames[[1]]
-df5 <- df[df$country %in% top_suicide_countries,]
+                                              decreasing = T),6))$dimnames[[1]]
+
+df5 <- orig[df$country %in% top_suicide_countries,]
+df5 <- aggreGate(df5, "country")
 
 
-plot5 <- df5 %>% ggplot(aes(country, average, group = as.factor(year), fill=as.factor(year)))+
+ggplot5 <- ggplot(df5, aes(country, average, group = as.factor(year), fill=as.factor(year)))+
   geom_bar(stat = "identity", position = "dodge")+
-  scale_y_continuous(limits=c(20,50),oob = scales::rescale_none)+
   ggtitle("Across top countries")+
+  scale_y_continuous(limits=c(10,52),oob = scales::rescale_none)+
   xlab("Country")+ylab("Suicides per 100k people")+
   labs(fill="Year")+
-  theme(plot.title = element_text(hjust = 0.4, face = "bold"))+
-  theme(axis.title = element_text(face="bold", size=12))+
-  theme(legend.title = element_text(face="bold"))+
+  theme(text = element_text(family = "Arial", size = 14))+
+  theme(plot.title = element_text(hjust = 0.4, face = "bold", size=20))+
+  theme(axis.title = element_text(face="bold", size=16))+
+  theme(legend.title = element_text(face="bold", size=16))+
   scale_fill_hue(l = 50, c = 50)
 
-plot6 <- df5 %>% ggplot(aes(country, average, fill = generation))+
+
+df6 <- orig[orig$country %in% top_suicide_countries,]
+df6 <- aggreGate(df6, "country", "generation")
+
+ggplot6 <- ggplot(df6, aes(country, average, fill = generation))+
   geom_bar(stat = "identity", position = "dodge")+
- scale_y_continuous(limits=c(20,50),oob = scales::rescale_none)+
   ggtitle("Across top countries and generations")+
   xlab("Country")+ylab("Suicides per 100k people")+
   labs(fill="Generation")+
-  theme(plot.title = element_text(hjust = 0.5, face = "bold", size=12))+
-  theme(axis.title = element_text(face="bold"))+
-  theme(legend.title = element_text(size = 12,face="bold"))+
+  theme(text = element_text(family = "Arial", size = 14))+
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size=20))+
+  theme(axis.title = element_text(face="bold", size=16))+
+  theme(legend.title = element_text(size = 16,face="bold"))+
   scale_fill_brewer(palette="OrRd")
+  
+plot1_2 <- ggplot1 + theme(legend.position = "none")+
+theme(axis.title.x = element_blank())
 
+plot2_2 <- ggplot2 + theme(legend.position = "none")+
+  theme(axis.title.x = element_text(size=16))
 
-plot1_2 <- plot1 + theme(legend.position = "none")+
+plot3_2 <- ggplot3 + theme(legend.position = "none")+
   theme(axis.title.x = element_blank())
 
-plot2_2 <- plot2 + theme(legend.position = "none")+
-  theme(axis.title.x = element_text(size=12))
+plot4_2 <- ggplot4
 
-plot3_2 <- plot3 + theme(legend.position = "none")+
+plot5_2 <- ggplot5 + theme(legend.position = "none")+
   theme(axis.title.x = element_blank())
 
-plot4_2 <- plot4
-
-plot5_2 <- plot5 + theme(legend.position = "none")+
-  theme(axis.title.x = element_blank())
-
-plot6_2 <- plot6 + theme(axis.title.x = element_blank())
+plot6_2 <- ggplot6 + theme(axis.title.x = element_blank())
 
 country_colors <- as_ggplot(get_legend(plot1))
 year_colors <- as_ggplot(get_legend(plot5))
 
 main <- grid.arrange(plot1_2,plot5_2,plot3_2,
-             plot6_2,plot2_2,plot4_2,
-             top = textGrob("Suicide rates from 1987 to 2016",
-             gp=gpar(fontsize=20,fontfamily="Arial",fontface="bold")))
+                     plot6_2,plot2_2,plot4_2,
+                     top = textGrob("Suicide rates from 1987 to 2016",
+                                    gp=gpar(fontsize=20,fontfamily="Arial",fontface="bold")))
 
 
-Plotly
-Plotly2
-Plotly3
-Plotly4
+for (p in ls()[grep("ggplot",ls())]){
+  png(paste(get(p)$labels$title,".png", sep=""), width = 2048, height = 768)
+  print(get(p))
+  dev.off()
+}
 
 for (p in ls()[grep("Plotly",ls())]){
-  saveWidget(as_widget(get(p)),
-             paste(p, ".html", sep=""))
-}
+  saveWidget(as_widget(get(p)), 
+             paste(gsub(".*> | </.*","", get(p)$x$layout$title$text), ".html", sep=""))
+} # :)
 
 # As time passes it seems like the rate of suicide slightly decreases
 # although in some countries it has increased in the past few years. 
