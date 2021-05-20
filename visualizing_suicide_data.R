@@ -7,7 +7,7 @@ library(RColorBrewer)
 library(grid)
 library(gridExtra)
 
-#data origin: https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016
+
 df_link <- "https://github.com/vetszabolcs/suicide_data/raw/main/master.csv"
 orig <- read.csv(df_link, encoding = "UTF-8")
 colnames(orig)[1] <- "country"
@@ -88,6 +88,7 @@ df3 <- orig[orig$sex=="female",]
 df3 <- aggreGate(df3)
 Plotly3 <- annual_plot_lines(df3, title="Female population")
 ggplot3 <- gg_plot
+ggplot3+theme(legend.position = "bottom")
 #-------------------------------------------------------------------------------
 # aggregate by generation
 df4 <- aggreGate(orig, "generation", "year")
@@ -149,14 +150,14 @@ plot5_2 <- ggplot5 + theme(legend.position = "none")+
 
 plot6_2 <- ggplot6 + theme(axis.title.x = element_blank())
 
-country_colors <- as_ggplot(get_legend(plot1))
-year_colors <- as_ggplot(get_legend(plot5))
+country_colors <- as_ggplot(get_legend(ggplot1))
+year_colors <- as_ggplot(get_legend(ggplot5))
 
-main <- grid.arrange(plot1_2,plot5_2,plot3_2,
+main <- as_ggplot(grid.arrange(plot1_2,plot5_2,plot3_2,
                      plot6_2,plot2_2,plot4_2,
-                     top = textGrob("Suicide rates from 1985 to 2016",
+                     top = textGrob("Suicide rates from 1987 to 2016",
                                     gp=gpar(fontsize=20,fontfamily="Arial",
-                                            fontface="bold")))
+                                            fontface="bold"))))
 
 #-------------------------------------------------------------------------------
 # Saving plots in a subfolder 
@@ -176,16 +177,22 @@ save_plotLYs <- function(vector_of_names){
 }
 
 # fun to save ggplots in png
-save_GGplots <- function(vector_of_names, w, h){
+save_GGplots <- function(vector_of_names, w, h, output = F){
   dir.create(paste(getwd(), "Plots", sep="/"), showWarnings = F)
   dir.create(paste(getwd(), "Plots/GGplot", sep="/"), showWarnings = F)
   for (p in vector_of_names){
     setwd("./Plots/GGplot")
-    png(paste(get(p)$labels$title,".png", sep=""), w, h)
-    print({get(p)})
-    dev.off()
-    setwd("../..")
-  }
+    if (output != F){
+      png(output, w, h)
+      print({get(p)})
+      dev.off()
+      setwd("../..")}
+    else{
+      png(paste(get(p)$labels$title,".png", sep=""), w, h)
+      print({get(p)})
+      dev.off()
+      setwd("../..")}
+    }
 }
 
 save_plotLYs(vector_of_names =  ls()[grep("Plotly", ls())])
@@ -193,15 +200,10 @@ save_plotLYs(vector_of_names =  ls()[grep("Plotly", ls())])
 save_GGplots(vector_of_names =  ls()[grep("ggplot", ls())],
              w = 2048,
              h = 768)
-save_plotLYs(vector_of_names =  ls()[grep("Plotly", ls())])
 
-save_GGplots(vector_of_names =  ls()[grep("ggplot", ls())],
-             w = 2048,
-             h = 768)
-save_GGplots("main",output = "facet.png", 2048,768)
+save_GGplots("main",output = "Facet.png", 2048,768)
 save_GGplots("country_colors", w=2048,768, output = "Country_colors.png")
 save_GGplots("year_colors", w=2048,768, output = "Year_colors.png")
-
 
 # As time passes it seems like the rate of suicide slightly decreases
 # although in some countries it has increased in the past few years. 
