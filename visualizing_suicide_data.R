@@ -193,6 +193,15 @@ save_plotLYs(vector_of_names =  ls()[grep("Plotly", ls())])
 save_GGplots(vector_of_names =  ls()[grep("ggplot", ls())],
              w = 2048,
              h = 768)
+save_plotLYs(vector_of_names =  ls()[grep("Plotly", ls())])
+
+save_GGplots(vector_of_names =  ls()[grep("ggplot", ls())],
+             w = 2048,
+             h = 768)
+save_GGplots("main",output = "facet.png", 2048,768)
+save_GGplots("country_colors", w=2048,768, output = "Country_colors.png")
+save_GGplots("year_colors", w=2048,768, output = "Year_colors.png")
+
 
 # As time passes it seems like the rate of suicide slightly decreases
 # although in some countries it has increased in the past few years. 
