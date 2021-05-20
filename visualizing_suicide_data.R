@@ -7,7 +7,7 @@ library(RColorBrewer)
 library(grid)
 library(gridExtra)
 
-
+#data origin: https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016
 df_link <- "https://github.com/vetszabolcs/suicide_data/raw/main/master.csv"
 orig <- read.csv(df_link, encoding = "UTF-8")
 colnames(orig)[1] <- "country"
@@ -154,7 +154,7 @@ year_colors <- as_ggplot(get_legend(plot5))
 
 main <- grid.arrange(plot1_2,plot5_2,plot3_2,
                      plot6_2,plot2_2,plot4_2,
-                     top = textGrob("Suicide rates from 1987 to 2016",
+                     top = textGrob("Suicide rates from 1985 to 2016",
                                     gp=gpar(fontsize=20,fontfamily="Arial",
                                             fontface="bold")))
 
