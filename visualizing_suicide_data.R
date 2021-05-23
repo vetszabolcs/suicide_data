@@ -234,7 +234,7 @@ eur$age <- factor(eur$age, levels = c("5-14 years",  "15-24 years", "25-34 years
 png("regions_and_age.png", 1280,720)
 gg5 <- ggplot(eur,aes(region, per_region_age, fill = age))+
   geom_bar(stat = "identity", position = "dodge")+
-  ggtitle("Regions and age")+
+  ggtitle("European regions and age")+
   xlab("Region")+ylab("Suicide / 100k people")+
   labs(fill="Age")+
   theme(text = element_text(size = 14))+
