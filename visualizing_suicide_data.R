@@ -6,12 +6,10 @@ library(gridExtra)
 library(grid)
 
 
-setwd("D:/Users/witen/Desktop/Suli/R/beadandó/b2")
 df_link <- "https://github.com/vetszabolcs/suicide_data/raw/main/master.csv"
 df <- read.csv(df_link)
 colnames(df)[1] <- "country"
 
-# kiegészítő adatok forrása: https://unstats.un.org/unsd/methodology/m49/overview/
 developing <- c("Algeria","Egypt","Libya","Morocco","Sudan","Tunisia","Western Sahara","British Indian Ocean Territory","Burundi","Comoros","Djibouti","Eritrea","Ethiopia","French Southern Territories","Kenya","Madagascar","Malawi","Mauritius","Mayotte","Mozambique","Réunion","Rwanda","Seychelles","Somalia","South Sudan","Uganda","United Republic of Tanzania","Zambia","Zimbabwe","Angola","Cameroon","Central African Republic","Chad","Congo","Democratic Republic of the Congo","Equatorial Guinea","Gabon","Sao Tome and Principe","Botswana","Eswatini","Lesotho","Namibia","South Africa","Benin","Burkina Faso","Cabo Verde","Côte d’Ivoire","Gambia","Ghana","Guinea","Guinea-Bissau","Liberia","Mali","Mauritania","Niger","Nigeria","Saint Helena","Senegal","Sierra Leone","Togo","Anguilla","Antigua and Barbuda","Aruba","Bahamas","Barbados","Bonaire","British Virgin Islands","Cayman Islands","Cuba","Curaçao","Dominica","Dominican Republic","Grenada","Guadeloupe","Haiti","Jamaica","Martinique","Montserrat","Puerto Rico","Saint Barthélemy","Saint Kitts and Nevis","Saint Lucia","Saint Martin (French Part)","Saint Vincent and the Grenadines","Sint Maarten (Dutch part)","Trinidad and Tobago","Turks and Caicos Islands","United States Virgin Islands","Belize","Costa Rica","El Salvador","Guatemala","Honduras","Mexico","Nicaragua","Panama","Argentina","Bolivia (Plurinational State of)","Bouvet Island","Brazil","Chile","Colombia","Ecuador","Falkland Islands (Malvinas)","French Guiana","Guyana","Paraguay","Peru","South Georgia and the South Sandwich Islands","Suriname","Uruguay","Venezuela (Bolivarian Republic of)","Kazakhstan","Kyrgyzstan","Tajikistan","Turkmenistan","Uzbekistan","China","China","China","Democratic People's Republic of Korea","Mongolia","Republic of Korea","Brunei Darussalam","Cambodia","Indonesia","Lao People's Democratic Republic","Malaysia","Myanmar","Philippines","Singapore","Thailand","Timor-Leste","Viet Nam","Afghanistan","Bangladesh","Bhutan","India","Iran (Islamic Republic of)","Maldives","Nepal","Pakistan","Sri Lanka","Armenia","Azerbaijan","Bahrain","Georgia","Iraq","Jordan","Kuwait","Lebanon","Oman","Qatar","Saudi Arabia","State of Palestine","Syrian Arab Republic","Turkey","United Arab Emirates","Yemen","Fiji","New Caledonia","Papua New Guinea","Solomon Islands","Vanuatu","Guam","Kiribati","Marshall Islands","Micronesia (Federated States of)","Nauru","Northern Mariana Islands","Palau","United States Minor Outlying Islands","American Samoa","Cook Islands","French Polynesia","Niue","Pitcairn","Samoa","Tokelau","Tonga","Tuvalu","Wallis and Futuna Islands")
 developing <- unique(gsub("-|\\(.*", "", developing))
 
@@ -51,6 +49,7 @@ df$developed[df$country %in% developing] <- "Developing"
 eur <- df[df$country %in% west | df$country %in% east | df$country %in% south |
             df$country %in% north | df$country %in% post_soc,]
 
+
 eur$post_soc <- "Non-postsocialist"
 eur$post_soc[eur$country %in% post_soc] <- "Postsocialist"
 unique(eur$country[!eur$post_soc == 1])
@@ -80,6 +79,7 @@ for (y in unique(df$year)){
   df[rows, "yearly"] <- sum(df[rows,"suicides_no"]) / sum(df[rows,"population"]) * 100000
 }
 
+
 unique(df$year)
 
 png("yearly.png", 1280,720)
@@ -93,6 +93,7 @@ gg0 <- ggplot(df, aes(year, yearly, colour = yearly*-1))+
   theme(axis.title = element_text(face = "bold", size = 16))+
   theme(plot.title = element_text(face = "bold", size = 20, hjust = 0.5))+
   theme(axis.text = element_text(size=14))
+gg0
 dev.off()
 
 #-------------------------------------------------------------------------------
@@ -115,6 +116,7 @@ gg1 <- ggplot(df, aes(year, dev_yearly, group = developed, colour = developed))+
   theme(legend.title = element_blank())+
   my_theme+
   theme(legend.text = element_text(size = 14))
+gg1
 dev.off()  
 
 png("dev_boxplot.png", 1280,720)
@@ -125,15 +127,22 @@ gg2 <- ggplot(df, aes(developed, dev_yearly))+
   labs(title = "Yearly suicide in developed vs. developing countires", 
        x = "Country type", y = "Suicide / 100k people")+
   my_theme
+gg2
 dev.off()
   
 
+df$per_country <- NA
+for (y in unique(df$country)){
+  rows <- which(df$country == y)
+  df[rows, "per_country"] <- sum(df[rows,"suicides_no"]) / sum(df[rows,"population"]) * 100000
+}
+
 df <- aggreGate(df, "country", "year", "country_yearly")
-df <- df[order(df$country_yearly),]
-tail(unique(df$country), 25)
+df <- df[order(c(df$per_country), decreasing = T),]
+df$country <- factor(x =df$country, levels = unique(df$country))
 
 png("top10.png", 1280,720)
-top10 <- ggplot(df[df$country %in% tail(unique(df$country), 10),],
+top10 <- ggplot(df[df$country %in% head(unique(df$country), 10),],
        aes(x=year, y=country_yearly, 
            colour=country, group=country,
            text = paste("Country:", country, "\n",
@@ -149,6 +158,7 @@ top10 <- ggplot(df[df$country %in% tail(unique(df$country), 10),],
   scale_x_continuous(breaks = seq(1985, 2016, 6))+
   my_theme+
   geom_point(aes(color=country), cex = 1.5)
+top10
 dev.off()
 
 
@@ -163,14 +173,17 @@ api_create(top10_plotly, "yearly_suicide_top_10_countries")
 #----------------------------------------------------------------------------------
 
 eur <- aggreGate(eur, "country", "year", "country_yearly")
-eur <- eur[order(eur$country_yearly),]
-tail(unique(eur$country), 25)
+eur$per_country <- NA
+for (y in unique(eur$country)){
+  rows <- which(eur$country == y)
+  eur[rows, "per_country"] <- sum(eur[rows,"suicides_no"]) / sum(eur[rows,"population"]) * 100000
+}
+eur <- eur[order(eur$per_country, decreasing = T),]
+head(unique(eur$country), 10)
+eur$country <- factor(eur$country, levels = unique(eur$country))
 
-all(df$country_yearly[df$country == "Hungary" & df$year == 2015] == 
-eur$country_yearly[eur$country == "Hungary" & eur$year == 2015])
-
-png("top21_eur.png", 1280,720)
-top10_eur <- ggplot(eur[eur$country %in% tail(unique(eur$country), 10),],
+png("top10_eur.png", 1280,720)
+top10_eur <- ggplot(eur[eur$country %in% head(unique(eur$country), 10),],
                 aes(x=year, y=country_yearly, 
                     colour=country, group=country,
                     text = paste("Country:", country, "\n",
@@ -186,6 +199,7 @@ top10_eur <- ggplot(eur[eur$country %in% tail(unique(eur$country), 10),],
   scale_x_continuous(breaks = seq(1985, 2016, 6))+
   my_theme+
   geom_point(aes(color=country), cex = 1.5)
+top10_eur
 dev.off()
 
 top10_eur_plotly <- ggplotly(top10_eur+theme(legend.title = element_blank()), tooltip = "text") %>% 
@@ -208,6 +222,7 @@ gg4 <- ggplot(eur,aes(gdp_per_capita...., per_country_year, colour = post_soc))+
   my_theme+
   theme(axis.title.x = element_text(margin=margin(10,0,0,0)))+
   theme(axis.title.y = element_text(margin=margin(0,10,0,0)))
+gg4
 dev.off()
 
 
@@ -221,8 +236,10 @@ gg5 <- ggplot(eur,aes(region, per_region_age, fill = age))+
   xlab("Region")+ylab("Suicide / 100k people")+
   labs(fill="Age")+
   theme(text = element_text(size = 14))+
+  theme(legend.title = element_text(face = "bold", size=16))+
   my_theme+
   scale_fill_hue(l = 50, c = 50)
+gg5
 dev.off()
 
 eur <- aggreGate(eur, "region", "age", "per_region_sex")
@@ -242,9 +259,8 @@ grid.arrange(gg0+theme(axis.title.x = element_blank()),
                          gp=gpar(fontsize=20, fontface="bold")))
 dev.off()
 
-
 # A 90-es évek óta gyorsan és viszonylag egyenletesen csökken az öngyilkosságok globális száma, igaz,
 # néhány évben, így 2016-ban is számos országban visszaesés volt azonosítható.
-# Az öngyilkosságok számát tekintve Magyarország továbbra is az élmezőnyben szerepel, 2016-ban a 6. helyen állt.
+# Az öngyilkosságok számát tekintve Magyarország továbbra is az élmezőnyben szerepel, 2016-ban a 5. helyen állt.
 # Hatalmas szakadék tátong a fejlődő és a fejlett országok öngyilkossági rátái között, illetve a kelet-nyugat,
 # posztszocialista - nem poszt szocialista régiók esetén is egyértelmű a differenciálódás.
