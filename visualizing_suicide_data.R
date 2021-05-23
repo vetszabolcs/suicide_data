@@ -6,6 +6,7 @@ library(gridExtra)
 library(grid)
 
 
+setwd("D:/Users/witen/Desktop/Suli/R/beadandó/b2")
 df_link <- "https://github.com/vetszabolcs/suicide_data/raw/main/master.csv"
 df <- read.csv(df_link)
 colnames(df)[1] <- "country"
@@ -228,7 +229,8 @@ dev.off()
 
 
 eur <- aggreGate(eur, "region","age","per_region_age")
-
+eur$age <- factor(eur$age, levels = c("5-14 years",  "15-24 years", "25-34 years",
+                                      "35-54 years","55-74 years", "75+ years"))
 png("regions_and_age.png", 1280,720)
 gg5 <- ggplot(eur,aes(region, per_region_age, fill = age))+
   geom_bar(stat = "identity", position = "dodge")+
@@ -243,8 +245,7 @@ gg5
 dev.off()
 
 eur <- aggreGate(eur, "region", "age", "per_region_sex")
-eur$age <- factor(eur$age, levels = c("5-14 years",  "15-24 years", "25-34 years",
-                                      "35-54 years","55-74 years", "75+ years"))
+
 
 png("facet.png", 1280,1280)
 grid.arrange(gg0+theme(axis.title.x = element_blank()),
