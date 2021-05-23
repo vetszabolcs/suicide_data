@@ -1,1 +1,4 @@
-<iframe width="900" height="800" frameborder="0" scrolling="no" src="//plotly.com/~vszabolcs/1.embed"></iframe>
+<div>
+    <a href="https://plotly.com/~vszabolcs/1/?share_key=VxKvhBQkJhaG7gh6StammT" target="_blank" title="yearly_suicide_top_10_countries" style="display: block; text-align: center;"><img src="https://plotly.com/~vszabolcs/1.png?share_key=VxKvhBQkJhaG7gh6StammT" alt="yearly_suicide_top_10_countries" style="max-width: 100%;width: 600px;"  width="600" onerror="this.onerror=null;this.src='https://plotly.com/404.png';" /></a>
+    <script data-plotly="vszabolcs:1" sharekey-plotly="VxKvhBQkJhaG7gh6StammT" src="https://plotly.com/embed.js" async></script>
+</div>
