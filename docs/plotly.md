@@ -4,6 +4,5 @@
 
 <div>
     <a href="https://plotly.com/~vszabolcs/3/?share_key=doiIHrKKAkcAy0TzZ0UIKm" target="_blank" title="yearly_suicide_top_10_eur_countries" style="display: block; text-align: center;"><img src="https://plotly.com/~vszabolcs/3.png?share_key=doiIHrKKAkcAy0TzZ0UIKm" alt="yearly_suicide_top_10_eur_countries" style="max-width: 100%;width: 800px;"  width="800" onerror="this.onerror=null;this.src='https://plotly.com/404.png';" /></a>
-    <script data-plotly="vszabolcs:3" sharekey-plotly="doiIHrKKAkcAy0TzZ0UIKm" src="https://plotly.com/embed.js" async></script>
-</div>
+    <script data-plotly="vszabolcs:3" sharekey-plotly="doiIHrKKAkcAy0TzZ0UIKm" src="https://plotly.com/embed.js" async></script> </div>
 
